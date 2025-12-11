@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>你是我的小狗么？</title>
+    <style>
+        /* 全局样式 */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #E0BBE4; /* 马卡龙淡紫色 */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden; /* 防止按钮变大撑开滚动条 */
+            text-align: center;
+        }
+
+        /* 容器样式 */
+        .container {
+            position: relative;
+            z-index: 10;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        /* 图片样式 */
+        .dog-img {
+            width: 200px;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        h1 {
+            color: #554357;
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        /* 按钮区域 */
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            height: 60px; /* 预留高度 */
+        }
+
+        button {
+            padding: 10px 30px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* 选项一：是的 (主要按钮) */
+        #yes-btn {
+            background-color: #ffffff;
+            color: #E0BBE4;
+            font-weight: bold;
+            border: 2px solid #fff;
+            z-index: 20; /* 保证在最上层 */
+        }
+
+        /* 选项二：不是 (次要按钮) */
+        #no-btn {
+            background-color: rgba(255, 255, 255, 0.5);
+            color: #554357;
+        }
+
+        /* 结果页面 (隐藏) */
+        #result-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #E0BBE4;
+            z-index: 100;
+        }
+
+        #result-screen h2 {
+            font-size: 2rem;
+            color: #fff;
+            margin-top: 20px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+
+        /* 爱心烟花特效容器 */
+        #hearts-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            overflow: hidden;
+        }
+
+        .heart {
+            position: absolute;
+            color: #ff4d4d;
+            font-size: 20px;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container" id="main-screen">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTY9xtU4qZfMIyTl7FRJ-CVXad5tShj3KAPdQ&s">
+        
+        <h1>你是我的小狗么？</h1>
+
+        <div class="btn-group">
+            <button id="yes-btn" onclick="sayYes()">是的</button>
+            <button id="no-btn" onclick="avoidChoice()">不是</button>
+        </div>
+    </div>
+
+    <div id="result-screen">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-OudVl8elQagEckn8uWvnJUIDxf5vraAXaw&s">
+        <h2>好狗 ❤️</h2>
+    </div>
+
+    <div id="hearts-container"></div>
+
+    <script>
+        let clickCount = 0;
+        const yesBtn = document.getElementById('yes-btn');
+        const noBtn = document.getElementById('no-btn');
+        const mainScreen = document.getElementById('main-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const heartsContainer = document.getElementById('hearts-container');
+
+        // 基础字体大小
+        let currentFontSize = 1.1; 
+        let currentPadding = 10;
+
+        function avoidChoice() {
+            clickCount++;
+
+            // 逻辑1: 每次点击“不是”，“是的”变大
+            currentFontSize += 0.5;
+            currentPadding += 5;
+            
+            yesBtn.style.fontSize = currentFontSize + 'rem';
+            yesBtn.style.padding = currentPadding + 'px ' + (currentPadding * 3) + 'px';
+
+            // 更改“不是”按钮的文案，增加趣味性
+            const rejectTexts = ["不是？", "再想想？", "真的不是？", "不可以不是！", "你点错了！"];
+            if (clickCount <= 5) {
+                noBtn.innerText = rejectTexts[Math.min(clickCount - 1, rejectTexts.length - 1)];
+            }
+
+            // 逻辑2: 点击5次，“是的”爆炸成爱心
+            if (clickCount >= 5) {
+                explodeHearts();
+            }
+        }
+
+        function explodeHearts() {
+            // 隐藏按钮，触发烟花
+            yesBtn.style.display = 'none';
+            noBtn.style.display = 'none';
+            
+            // 生成大量爱心
+            for (let i = 0; i < 50; i++) {
+                createHeart();
+            }
+
+            // 延迟一点点时间后，自动进入成功页面（或者你可以选择停留）
+            // 这里设定为爆炸后自动视为同意
+            setTimeout(() => {
+                sayYes();
+            }, 1500);
+        }
+
+        function sayYes() {
+            // 隐藏主界面
+            mainScreen.style.display = 'none';
+            // 显示结果界面
+            resultScreen.style.display = 'flex';
+            
+            // 在结果页继续下爱心雨
+            setInterval(createHeart, 300);
+        }
+
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            heart.innerHTML = '❤️';
+            
+            // 随机位置和动画时间
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDuration = Math.random() * 2 + 3 + 's';
+            heart.style.fontSize = Math.random() * 20 + 20 + 'px';
+            
+            heartsContainer.appendChild(heart);
+
+            // 动画结束后移除元素，防止内存泄漏
+            setTimeout(() => {
+                heart.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
